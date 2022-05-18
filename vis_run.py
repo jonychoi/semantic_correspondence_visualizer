@@ -29,6 +29,7 @@ if __name__ == "__main__":
     parser.add_argument('--kps_or_mask', type=str, default='mask')
     parser.add_argument('--save_dir', type=str, default='./imgs')
     parser.add_argument('--seed', type=int, default='1998')
+    parser.add_argument('--threshold', type=float, default='0.9')
 
     args = parser.parse_args()
 
@@ -48,7 +49,7 @@ if __name__ == "__main__":
 
     #models
     confmatch = Confmatch(args.dataset)
-    cats = Cats()
+    cats = Cats(args.dataset)
 
     models = [confmatch, cats]
     pre_trained_weights = [args.confmatch_pretrained_path, args.cats_pretrained_path, args.chm_pretrained_path, args.semimatch_pretrained_path]
@@ -64,7 +65,7 @@ if __name__ == "__main__":
             else:
                 new_state_dict[n] = v     
         print(new_state_dict.keys())
-        model.load_state_dict(new_state_dict)
+        model.load_state_dict(new_state_dict, strict = False)
 
         model.eval()
 
@@ -74,6 +75,7 @@ if __name__ == "__main__":
             for i, mini_batch in pbar:
                 if model == confmatch:
                     predictors.predict_confmatch(i, model, mini_batch, args, device)
+                    pass
                 elif model == cats:
                     predictors.predict_cat(i, model, mini_batch, args, device)
 

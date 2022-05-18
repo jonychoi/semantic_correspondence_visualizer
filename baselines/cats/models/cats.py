@@ -12,7 +12,7 @@ from timm.models.layers import DropPath, trunc_normal_
 
 from baselines.cats.models.feature_backbones import resnet
 from baselines.cats.models.mod import FeatureL2Norm, unnormalise_and_convert_mapping_to_flow
-
+import pdb
 
 r'''
 Modified timm library Vision Transformer implementation
@@ -314,7 +314,7 @@ class CATs(nn.Module):
         flow = unnormalise_and_convert_mapping_to_flow(flow)
 
 
-        refined_T_Svec = self.softmax_with_temperature(refined_corr.view(B, -1, self.feature_size, self.feature_size), beta=self.args.semi_softmax_corr_temp, d=1)
+        refined_T_Svec = self.softmax_with_temperature(refined_corr.view(B, -1, self.feature_size, self.feature_size), beta=0.1, d=1)
         #refined_S_Tvec = self.softmax_with_temperature(refined_corr.transpose(-1, -2).view(B, -1, self.feature_size, self.feature_size), beta=self.args.semi_softmax_corr_temp, d=1)
 
         maxed_confidence_map, index_T_Svec = torch.max(refined_T_Svec, dim=1)

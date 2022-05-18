@@ -7,7 +7,7 @@ import os
 from visualize_utils.tgt_test_imgs import pfpascal
 
 def mask_plotter(args, model_name, index, confidence_map, save_dir, theme = plt.cm.hot, upsample_mode = 'bilinear', name_plot = False, name = None):
-    confidence_map = upsampling(confidence_map, mode = upsample_mode).to('cpu')
+    confidence_map = upsampling(args, confidence_map, mode = upsample_mode).to('cpu')
 
     #print(name, confidence_map.shape)
     fig = plt.figure()
@@ -31,11 +31,18 @@ def mask_plotter(args, model_name, index, confidence_map, save_dir, theme = plt.
     
     save_plot(dir_name=save_dir, img_name="{}'s {} confidence map of {}".format(args.dataset, index, model_name))
 
-def upsampling(confidence_map, scale_factor = 16, mode = 'bilinear'):
+def upsampling(args, confidence_map, scale_factor = 16, mode = 'bilinear'):
     #confidence_map = confidence_map.unsqueeze(0).unsqueeze(0) # make 4D from 2D
+    if confidence_map.dim() == 3:
+        confidence_map = confidence_map.unsqueeze(0)
     upsampler = nn.Upsample(scale_factor = scale_factor, mode = mode)
     upsampled_confidence_map = upsampler(confidence_map)
     _2d_map = upsampled_confidence_map.squeeze(0).squeeze(0)
+
+    zeros = torch.zeros_like(_2d_map)
+
+    if args.threshold:
+        _2d_map = torch.where(_2d_map >= args.threshold, _2d_map, zeros)
     return _2d_map
     
 def save_plot(dir_name, img_name):
