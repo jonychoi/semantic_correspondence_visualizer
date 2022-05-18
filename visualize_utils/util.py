@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 import torch
-import torch.nn.F as F
+import torch.nn.functional as F
 
 
 def resize_keeping_aspect_ratio(image, size):

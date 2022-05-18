@@ -1,4 +1,4 @@
-CUDA_VISIBLE_DEVICES=0 python vis_run.py \
+CUDA_VISIBLE_DEVICES=0 python ./vis_run.py \
 --dataset 'pfpascal' \
 --datapath '../../Datasets_CATs' \
 --confmatch_pretrained_path '../model_weights/confmatch_pascal_best.pth' \
