@@ -1,12 +1,10 @@
 import sys, time, argparse, random
-sys.path.append('.')
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
 import tqdm
 from collections import OrderedDict
 from data import download
-from visualize_utils.mask_vis import mask_plotter
 from visualize_utils.predictors import predict_confmatch, predict_cat
 
 #import models
