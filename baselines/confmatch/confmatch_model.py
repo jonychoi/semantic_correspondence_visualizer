@@ -1,19 +1,18 @@
 import random
 import yaml
-import sys
+import os
 import numpy as np
 import torch
-sys.path.append('.')
-from models.cats import CATs
-from confidence_estimator.con_estimator_tf_not_residual import con_estimator_tf_not_residual_shallow
-from semimatch.utils import parse_list
-from confmatch.confmatch import ConfMatch
+from baselines.confmatch.models.cats import CATs
+from baselines.confmatch.confidence_estimator.con_estimator_tf_not_residual import con_estimator_tf_not_residual_shallow
+from baselines.confmatch.utils_training.utils import parse_list
+from baselines.confmatch.confmatch.confmatch import ConfMatch
 
 class args_struct:
     def __init__(self, **entries): 
         self.__dict__.update(entries)
 
-with open('finalargs.yaml') as f:
+with open(os.getcwd() + '/baselines/confmatch/finalargs.yml') as f:
     args_yaml = yaml.load(f)
 args = args_struct(**args_yaml)
         

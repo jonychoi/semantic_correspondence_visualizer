@@ -5,30 +5,38 @@ import random
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
-import tqdm
+from tqdm import tqdm
 from collections import OrderedDict
 from data import download
-from visualize_utils.predictors import predict_confmatch, predict_cat
+from visualize_utils import predictors
 
 #import models
-from baselines.cats.models.cats import CATs as cats
-from baselines.confmatch.confmatch_model import confmatch
+from baselines.cats.cats_model import Cats
+from baselines.confmatch.confmatch_model import confmatch as Confmatch
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--batch_size', type=int, default=64)
+    parser = argparse.ArgumentParser(description="visualization")
+    parser.add_argument('--batch_size', type=int, default=1)
     parser.add_argument('--n_threads', type=int, default=32)
     parser.add_argument('--thres', type=str, default='auto')
-    parser.add_argument('--datapath', type=int, default='../../../Datasets_CATs')
+    parser.add_argument('--datapath', type=str, default='../../../Datasets_CATs')
     parser.add_argument('--dataset', type=str, default='pfpascal')
+    parser.add_argument('--confmatch_pretrained_path', type=str, default='../model_weights/confmatch_pascal_best.pth')
+    parser.add_argument('--cats_pretrained_path', type=str, default='../model_weights/cats_pascal_best.pth')
+    parser.add_argument('--chm_pretrained_path', type=str, default='pfpascal')
+    parser.add_argument('--semimatch_pretrained_path', type=str, default='pfpascal')
+    parser.add_argument('--kps_or_mask', type=str, default='mask')
+    parser.add_argument('--save_dir', type=str, default='./imgs')
+    parser.add_argument('--seed', type=int, default='1998')
+
     args = parser.parse_args()
 
     random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
-    device = torch.cuda.current_device()
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     test_dataset = download.load_dataset(args.dataset, args.datapath, args.thres, device, 'test', False, 16)
     test_dataloader = DataLoader(test_dataset, batch_size=args.batch_size, num_workers=args.n_threads, shuffle=False)
@@ -39,7 +47,8 @@ if __name__ == "__main__":
     #Q. cats what to use?? =>target
 
     #models
-    confmatch = confmatch(args.dataset)
+    confmatch = Confmatch(args.dataset)
+    cats = Cats()
 
     models = [confmatch, cats]
     pre_trained_weights = [args.confmatch_pretrained_path, args.cats_pretrained_path, args.chm_pretrained_path, args.semimatch_pretrained_path]
@@ -64,9 +73,9 @@ if __name__ == "__main__":
             
             for i, mini_batch in pbar:
                 if model == confmatch:
-                    predict_confmatch(model, mini_batch, args, device)
+                    predictors.predict_confmatch(i, model, mini_batch, args, device)
                 elif model == cats:
-                    predict_cat(model, mini_batch, args, device)
+                    predictors.predict_cat(i, model, mini_batch, args, device)
 
 
 

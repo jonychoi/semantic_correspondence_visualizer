@@ -11,49 +11,9 @@ import timm
 from timm.models.layers import DropPath, trunc_normal_
 import torchvision.models as models
 
-from models.feature_backbones import resnet
-from models import *
-from models.mod import FeatureL2Norm, unnormalise_and_convert_mapping_to_flow
-import pdb
-
-# class con_estimator(nn.Module):
-#     def __init__(self,input_channels=1):
-#         super(con_estimator, self).__init__()
-#         self.input_channels = input_channels
-#         self.cost_conv1 = nn.Conv2d(self.input_channels, 64, kernel_size=9, padding=4)
-#         self.cost_bn1 = nn.BatchNorm2d(64)
-#         self.cost_conv2 = nn.Conv2d(64, 64, kernel_size=7, padding=3)
-#         self.cost_bn2 = nn.BatchNorm2d(64)
-#         self.cost_conv3 = nn.Conv2d(64, 64, kernel_size=5, padding=2)
-#         self.cost_bn3 = nn.BatchNorm2d(64)
-#         self.cost_conv4 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
-#         self.cost_bn4 = nn.BatchNorm2d(64)
-#         self.cost_pred = nn.Conv2d(64, 1, kernel_size=1, padding=0)
-
-#         self.sigmoid = nn.Sigmoid()
-
-#         for m in self.modules():
-#             if isinstance(m, nn.Conv2d):
-#                 nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-#             elif isinstance(m, nn.BatchNorm2d):
-#                 nn.init.constant_(m.weight, 1)
-#                 nn.init.constant_(m.bias, 0)
-
-#     def L2normalize(self, x):
-#         norm = x ** 2
-#         norm = norm.sum(dim=1, keepdim=True) + 1e-6
-#         norm = norm ** (0.5)
-#         return (x / norm)
-
-#     def forward(self, corr):
-#         corr = corr.detach()
-#         x = F.relu(self.cost_bn1(self.cost_conv1(corr)))
-#         x = F.relu(self.cost_bn2(self.cost_conv2(x)))
-#         x = F.relu(self.cost_bn3(self.cost_conv3(x)))
-#         x = F.relu(self.cost_bn4(self.cost_conv4(x)))
-#         out = self.sigmoid(self.cost_pred(x))
-
-#         return out
+from baselines.confmatch.models.feature_backbones import resnet
+from baselines.confmatch.models import *
+from baselines.confmatch.models.mod import FeatureL2Norm, unnormalise_and_convert_mapping_to_flow
 class Mlp(nn.Module):
     def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
         super().__init__()
@@ -319,12 +279,9 @@ class con_estimator_tf_not_residual_shallow(nn.Module):
 
         ##########################################################################################
         
-        if args.con_est_input_map_direction == 'forward':
-            transposed_map_1 = transposed_T_Svec_map
-            transposed_map_2 = transposed_S_Tvec_map
-        elif args.con_est_input_map_direction == 'reverse':
-            transposed_map_1 = transposed_S_Tvec_map
-            transposed_map_2 = transposed_T_Svec_map
+        transposed_map_1 = transposed_T_Svec_map
+        transposed_map_2 = transposed_S_Tvec_map
+
 
         B = corr.shape[0] # B=32
         x0 = corr.clone() #torch.Size([32, 1, 256, 256])
@@ -350,15 +307,14 @@ class con_estimator_tf_not_residual_shallow(nn.Module):
         """
         ##############################################추가한 부분 #######################################
 
-        if args.con_est_input_mode == 'tgt':
-            x0 = x0.view(B, self.img_size*self.img_size, self.img_size, self.img_size)
-            projected_corr= self.relu(self.proj_corr(x0)) #(B, 32, 16, 16)
-            projected_corr = projected_corr.flatten(2).transpose(-1, -2).unsqueeze(1) #(B, 1, 256, 32)                    
-            projected_map_1 = self.relu(self.proj_map(transposed_map_1))
-    
-            projected_target_feat = self.relu(self.proj_feat(target.permute(0, 2, 3, 1).flatten(2)))
-            concated_src = torch.cat((projected_corr, projected_map_1.unsqueeze(1), projected_target_feat.unsqueeze(1)), dim=3) + pos_embed #torch.Size([32, 1, 256, 384])
-            confidence_map = self.relu(self.proj_conf(self.blocks(concated_src)))  # swapping the axis for swapping self-attention. # x2 : torch.Size([32, 8, 256, 256])       
+        x0 = x0.view(B, self.img_size*self.img_size, self.img_size, self.img_size)
+        projected_corr= self.relu(self.proj_corr(x0)) #(B, 32, 16, 16)
+        projected_corr = projected_corr.flatten(2).transpose(-1, -2).unsqueeze(1) #(B, 1, 256, 32)                    
+        projected_map_1 = self.relu(self.proj_map(transposed_map_1))
+
+        projected_target_feat = self.relu(self.proj_feat(target.permute(0, 2, 3, 1).flatten(2)))
+        concated_src = torch.cat((projected_corr, projected_map_1.unsqueeze(1), projected_target_feat.unsqueeze(1)), dim=3) + pos_embed #torch.Size([32, 1, 256, 384])
+        confidence_map = self.relu(self.proj_conf(self.blocks(concated_src)))  # swapping the axis for swapping self-attention. # x2 : torch.Size([32, 8, 256, 256])       
 
         confidence_map = confidence_map.view(B, 1, 256) 
         confidence_map = self.sigmoid(confidence_map)
@@ -430,12 +386,9 @@ class con_estimator_tf_not_residual_shallow_mlp(nn.Module):
         transposed_T_Svec_map = flattened_T_Svec_map.transpose(-1,-2) #Bx2x256  을 Bx256x2 으로 transpose 후, Bx1x256x2 로 unsqueeze
         transposed_S_Tvec_map = flattened_S_Tvec_map.transpose(-1,-2) #Bx2x256  을 Bx256x2 으로 transpose 후, Bx1x256x2 로 unsqueeze
         
-        if args.con_est_input_map_direction == 'forward':
-            transposed_map_1 = transposed_T_Svec_map
-            transposed_map_2 = transposed_S_Tvec_map
-        elif args.con_est_input_map_direction == 'reverse':
-            transposed_map_1 = transposed_S_Tvec_map
-            transposed_map_2 = transposed_T_Svec_map
+        transposed_map_1 = transposed_T_Svec_map
+        transposed_map_2 = transposed_S_Tvec_map
+
 
         B = corr.shape[0] # B=32
         x0 = corr.clone() #torch.Size([32, 1, 256, 256])
@@ -443,16 +396,15 @@ class con_estimator_tf_not_residual_shallow_mlp(nn.Module):
         pos_embed = pos_embed.flatten(2, 3)
 
 
-        if args.con_est_input_mode == 'tgt':
-            x0 = x0.view(B, self.img_size*self.img_size, self.img_size, self.img_size)
-            projected_corr= self.relu(self.proj_corr(x0)) #(B, 32, 16, 16)
-            projected_corr = projected_corr.flatten(2).transpose(-1, -2).unsqueeze(1) #(B, 1, 256, 32)                    
-            projected_map_1 = self.relu(self.proj_map(transposed_map_1))
-            projected_map_2 = self.relu(self.proj_map_2(projected_map_1))
-            projected_target_feat1 = self.relu(self.proj_feat(target.permute(0, 2, 3, 1).flatten(2)))
-            projected_target_feat2 = self.relu(self.proj_feat_2(projected_target_feat1))
-            concated_src = torch.cat((projected_corr, projected_map_2.unsqueeze(1), projected_target_feat2.unsqueeze(1)), dim=3) + pos_embed #torch.Size([32, 1, 256, 384])
-            confidence_map = self.relu(self.proj_conf(self.blocks(concated_src)))  # swapping the axis for swapping self-attention. # x2 : torch.Size([32, 8, 256, 256])       
+        x0 = x0.view(B, self.img_size*self.img_size, self.img_size, self.img_size)
+        projected_corr= self.relu(self.proj_corr(x0)) #(B, 32, 16, 16)
+        projected_corr = projected_corr.flatten(2).transpose(-1, -2).unsqueeze(1) #(B, 1, 256, 32)                    
+        projected_map_1 = self.relu(self.proj_map(transposed_map_1))
+        projected_map_2 = self.relu(self.proj_map_2(projected_map_1))
+        projected_target_feat1 = self.relu(self.proj_feat(target.permute(0, 2, 3, 1).flatten(2)))
+        projected_target_feat2 = self.relu(self.proj_feat_2(projected_target_feat1))
+        concated_src = torch.cat((projected_corr, projected_map_2.unsqueeze(1), projected_target_feat2.unsqueeze(1)), dim=3) + pos_embed #torch.Size([32, 1, 256, 384])
+        confidence_map = self.relu(self.proj_conf(self.blocks(concated_src)))  # swapping the axis for swapping self-attention. # x2 : torch.Size([32, 8, 256, 256])       
         
         confidence_map = confidence_map.view(B, 1, 256) 
         confidence_map = self.sigmoid(confidence_map)

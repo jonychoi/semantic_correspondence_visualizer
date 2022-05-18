@@ -9,10 +9,9 @@ import torch.nn.functional as F
 import numpy as np
 import timm
 from timm.models.layers import DropPath, trunc_normal_
-import torchvision.models as models
 
-from models.feature_backbones import resnet
-from models.mod import FeatureL2Norm, unnormalise_and_convert_mapping_to_flow
+from baselines.cats.models.feature_backbones import resnet
+from baselines.cats.models.mod import FeatureL2Norm, unnormalise_and_convert_mapping_to_flow
 
 
 r'''

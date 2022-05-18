@@ -1,11 +1,13 @@
 import torch
 import torch.nn as nn
+import torchvision.transforms as T
 import matplotlib.pyplot as plt
 from PIL import Image
 import os
+from visualize_utils.tgt_test_imgs import pfpascal
 
-def mask_plotter(image, confidence_map, save_dir, theme = plt.cm.hot, upsample_mode = 'bilinear', name_plot = False, name = None):
-    confidence_map = upsampling(confidence_map, mode = upsample_mode)
+def mask_plotter(args, model_name, index, confidence_map, save_dir, theme = plt.cm.hot, upsample_mode = 'bilinear', name_plot = False, name = None):
+    confidence_map = upsampling(confidence_map, mode = upsample_mode).to('cpu')
 
     #print(name, confidence_map.shape)
     fig = plt.figure()
@@ -16,7 +18,7 @@ def mask_plotter(image, confidence_map, save_dir, theme = plt.cm.hot, upsample_m
     if name_plot:
         plt.title(name, size=14)
     
-    image = Image.open(image)
+    image = Image.open('/media/ssd/Datasets_CATs/PF-PASCAL/'+pfpascal()[index])
     resized_image = image.resize((256, 256)) # Use PIL to resize
     plt.axis('off')
     
@@ -27,17 +29,18 @@ def mask_plotter(image, confidence_map, save_dir, theme = plt.cm.hot, upsample_m
     cb = fig.colorbar(map, ticks=[0, 0.2, 0.4, 0.6, 0.8, 1])
     #cb.ax.text(1.88, 1, 'Confidence', va='bottom', ha='center') #r'$\times$10$^{-1}$'
     
-    save_plot(dir_name=save_dir, img_name=name)
+    save_plot(dir_name=save_dir, img_name="{}'s {} confidence map of {}".format(args.dataset, index, model_name))
 
 def upsampling(confidence_map, scale_factor = 16, mode = 'bilinear'):
-    confidence_map = confidence_map.unsqueeze(0).unsqueeze(0) # make 4D from 2D
+    #confidence_map = confidence_map.unsqueeze(0).unsqueeze(0) # make 4D from 2D
     upsampler = nn.Upsample(scale_factor = scale_factor, mode = mode)
     upsampled_confidence_map = upsampler(confidence_map)
     _2d_map = upsampled_confidence_map.squeeze(0).squeeze(0)
     return _2d_map
     
 def save_plot(dir_name, img_name):
-    my_path = os.path.abspath(dir_name)
+    my_path = os.path.abspath(os.getcwd() + dir_name)
+    print(my_path)
     _dir = os.path.join(my_path, img_name)   
     plt.savefig(_dir, bbox_inches='tight', dpi = 100)
     

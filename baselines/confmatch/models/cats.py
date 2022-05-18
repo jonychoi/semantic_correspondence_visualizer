@@ -11,11 +11,10 @@ import timm
 from timm.models.layers import DropPath, trunc_normal_
 import torchvision.models as models
 
-from models.feature_backbones import resnet
-from models.mod import FeatureL2Norm, unnormalise_and_convert_mapping_to_flow
+from baselines.confmatch.models.feature_backbones import resnet
+from baselines.confmatch.models.mod import FeatureL2Norm, unnormalise_and_convert_mapping_to_flow
 import matplotlib.pyplot as plt
 from torch.autograd import Variable
-import pdb
 import cv2
 r'''
 Modified timm library Vision Transformer implementation
