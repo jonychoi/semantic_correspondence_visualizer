@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 import tqdm
 from collections import OrderedDict
 from data import download
+from visualize_utils.mask_vis import mask_plotter
 from visualize_utils.predictors import predict_confmatch, predict_cat
 
 #import models
