@@ -1,0 +1,84 @@
+additional_weak: false
+alpha_1: 0.1
+alpha_2: 0.5
+aug_aff_scaling: 0.25
+aug_mixup: 0
+aug_mode: afftps
+aug_photo_source: 0.2
+aug_photo_strong: 0.2
+aug_photo_weak: 0.2
+aug_tps_scaling: 0.4
+augmentation: true
+contrastive_gt_mask: false
+cur_snapshot: ./snapshots_final/new_dynamic
+depth: 1
+epochs: 500
+feature_proj_dim: 128
+feature_size: 16
+inner_bbox_loss: true
+interpolate_index: true
+interpolation_mode: nearest
+keymix: 0.0
+loss_mode: contrastive
+lr_backbone: 3.0e-06
+mlp_ratio: 4
+momentum: 0.9
+n_threads: 32
+num_heads: 6
+#########################
+p_cutoff: 0.5
+scheduler: step
+self_lambda: 0.5
+semi_contrastive_temp: 0.1
+semi_lambda: 0.5
+step_gamma: 0.5
+strong_sup_loss: true
+time_stamp: '2021_11_18_05_30'
+uncertainty_lamda: 1.5
+use_class_aware_sup: true
+##########################
+use_fbcheck_mask: true
+#########################
+use_me_max_loss: false
+##########################
+use_self_loss: false
+
+#prior .sh > ETE
+# q. store_true => true?
+# q. no value what
+# q. const=true, default=false which to choose?
+# q. p_cutoff ?
+# q. bringing all the things from ete files
+
+
+use_uncertainty: true
+use_warmUp: false
+warmup_epoch: 0
+weight_decay: 0.05
+
+lr_con: 0.000001
+freeze: true
+conf_est_resume: true
+pretrained: '../conf_pretrained_models/model_best_35_0.73.pth'
+keyout: 0.2
+contrastive_gt_mask: true
+refined_corr_filtering: 'mutual'
+additional_weak: true
+step: '[80,: 100,: 110]'
+step_con: '[80, 100, 110]'
+hyperpixel: '[0,8,20,21,26,28,29,30]'
+# dynamic_unsup
+# data_parallel
+use_maxProb: false
+con_est_depth: 1
+alpha_train: 0.1
+alpha_train_self: 0.1
+cut_off: 0.9
+con_est_input_map_type: unNorm
+vis_interval: 1000 
+
+thres: 'auto'
+alpha: 0.1
+#confidence_estimator
+sparse_exp: true
+semi_softmax_corr_temp: 0.1
