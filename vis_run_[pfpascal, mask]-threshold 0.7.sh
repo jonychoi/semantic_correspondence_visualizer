@@ -4,4 +4,5 @@ CUDA_VISIBLE_DEVICES=0 python vis_run.py \
 --kps_or_mask 'mask' \
 --save_dir '/imgs/' \
 --seed 1998 \
---threshold 0.7
+--threshold 0.7 \
+--image_opacity 0.55

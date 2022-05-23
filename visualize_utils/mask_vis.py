@@ -6,7 +6,7 @@ from PIL import Image
 import os
 from visualize_utils.tgt_test_imgs import pfpascal
 
-def mask_plotter(args, model_name, index, confidence_map, save_dir, theme = plt.cm.hot, upsample_mode = 'bilinear', name_plot = False, name = None):
+def mask_plotter(args, model_name, index, confidence_map, test_anno, theme = plt.cm.hot, upsample_mode = 'bilinear', name_plot = False, name = None):
     confidence_map = upsampling(args, confidence_map, mode = upsample_mode).to('cpu')
 
     #print(name, confidence_map.shape)
@@ -17,19 +17,45 @@ def mask_plotter(args, model_name, index, confidence_map, save_dir, theme = plt.
     
     if name_plot:
         plt.title(name, size=14)
-    
-    image = Image.open('/media/ssd/Datasets_CATs/PF-PASCAL/'+pfpascal()[index])
+
+    if args.dataset == 'pfpascal':
+        image = Image.open('/media/ssd/Datasets_CATs/PF-PASCAL/'+pfpascal()[index])
+        if args.first_masking_order == "image":
+            dir = args.save_dir+'confidence_mask/{}/{}/order_inverted/image opacity of- {}/threshold of- {}'.format(args.dataset, model_name, args.image_opacity, args.threshold)
+        else:
+            dir = args.save_dir+'confidence_mask/{}/{}/image opacity of- {}/threshold of- {}'.format(args.dataset, model_name, args.image_opacity, args.threshold)
+        
+    elif args.dataset == 'spair':
+        anno = test_anno[index].split(":")
+        label = anno[1]
+        tgt = anno[0].split("-")[2]
+        image = Image.open('/media/ssd/Datasets_CATs/SPair-71k/JPEGImages/{}/{}.jpg'.format(label, tgt))
+        if args.first_masking_order == "image":
+            dir = args.save_dir+'confidence_mask/{}/{}/order_inverted/image opacity of- {}/threshold of- {}/{}'.format(args.dataset, model_name, args.image_opacity, args.threshold, label)
+        else:
+            dir = args.save_dir+'confidence_mask/{}/{}/image opacity of- {}/threshold of- {}/{}'.format(args.dataset, model_name, args.image_opacity, args.threshold, label)
+
+
     resized_image = image.resize((256, 256)) # Use PIL to resize
     plt.axis('off')
+
+    if args.first_masking_order == 'image':
+        a = ax.imshow(resized_image, alpha=args.image_opacity)
+
+        map = ax.imshow(confidence_map, cmap=theme, alpha=1)
+    else: #default => mask first and image front
+        map = ax.imshow(confidence_map, cmap=theme, alpha=1)
     
-    map = ax.imshow(confidence_map, cmap=theme, alpha=1)
-    
-    a = ax.imshow(resized_image, alpha=0.55)
-    
+        a = ax.imshow(resized_image, alpha=args.image_opacity)
+
     cb = fig.colorbar(map, ticks=[0, 0.2, 0.4, 0.6, 0.8, 1])
     #cb.ax.text(1.88, 1, 'Confidence', va='bottom', ha='center') #r'$\times$10$^{-1}$'
     
-    save_plot(dir_name=save_dir, img_name="{}'s {} confidence map of {}".format(args.dataset, index, model_name))
+    isExist = os.path.exists(dir)
+    if not isExist:    
+        os.makedirs(os.getcwd()+dir, exist_ok = True)
+
+    save_plot(dir_name=dir, img_name="{}'s {} confidence map of {}".format(args.dataset, index, model_name))
 
 def upsampling(args, confidence_map, scale_factor = 16, mode = 'bilinear'):
     #confidence_map = confidence_map.unsqueeze(0).unsqueeze(0) # make 4D from 2D

@@ -1,4 +1,3 @@
-import sys
 import time
 import argparse
 import random
@@ -13,6 +12,7 @@ from visualize_utils import predictors
 #import models
 from baselines.cats.cats_model import Cats
 from baselines.confmatch.confmatch_model import confmatch as Confmatch
+from visualize_utils.tgt_test_imgs import pfpascal, spair
 
 if __name__ == "__main__":
 
@@ -29,7 +29,9 @@ if __name__ == "__main__":
     parser.add_argument('--kps_or_mask', type=str, default='mask')
     parser.add_argument('--save_dir', type=str, default='./imgs')
     parser.add_argument('--seed', type=int, default='1998')
-    parser.add_argument('--threshold', type=float, default='0.9')
+    parser.add_argument('--threshold', type=float, default=0)
+    parser.add_argument('--image_opacity', type=float, default=0.55)
+    parser.add_argument('--first_masking_order', type=str, default="mask")
 
     args = parser.parse_args()
 
@@ -54,6 +56,12 @@ if __name__ == "__main__":
     models = [confmatch, cats]
     pre_trained_weights = [args.confmatch_pretrained_path, args.cats_pretrained_path, args.chm_pretrained_path, args.semimatch_pretrained_path]
 
+    global tst_anno
+    
+    if args.dataset == 'pfpascal':
+        tst_anno = pfpascal()
+    elif args.dataset == 'spair':
+        tst_anno = spair()
     #get model sota weights and predict the confidence masks or keypoint mapping
     for index, model in enumerate(models):
         checkpoint = torch.load(pre_trained_weights[index], map_location='cpu')
@@ -74,10 +82,10 @@ if __name__ == "__main__":
             
             for i, mini_batch in pbar:
                 if model == confmatch:
-                    predictors.predict_confmatch(i, model, mini_batch, args, device)
+                    predictors.predict_confmatch(i, model, mini_batch, args, device, tst_anno)
                     pass
                 elif model == cats:
-                    predictors.predict_cat(i, model, mini_batch, args, device)
+                    predictors.predict_cat(i, model, mini_batch, args, device, tst_anno)
 
 
 

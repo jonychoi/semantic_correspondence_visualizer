@@ -300,3 +300,9 @@ def pfpascal():
         "JPEGImages/2011_002218.jpg",
         "JPEGImages/2011_002942.jpg",
     ]
+
+def spair():
+    fileObj = open('/media/ssd/Datasets_CATs/SPair-71k/Layout/large/test.txt', "r") #opens the file in read mode
+    files = fileObj.read().splitlines() #puts the file into an array
+    fileObj.close()
+    return files
