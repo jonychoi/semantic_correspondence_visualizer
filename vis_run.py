@@ -50,6 +50,7 @@ if __name__ == "__main__":
     #Q. cats what to use?? =>target
 
     #models
+    print(args.dataset)
     confmatch = Confmatch(args.dataset)
     cats = Cats(args.dataset)
 
@@ -72,7 +73,7 @@ if __name__ == "__main__":
                 new_state_dict[new_n] = v
             else:
                 new_state_dict[n] = v     
-        print(new_state_dict.keys())
+        #print(new_state_dict.keys())
         model.load_state_dict(new_state_dict, strict = False)
 
         model.eval()

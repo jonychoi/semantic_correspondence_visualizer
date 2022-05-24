@@ -23,13 +23,15 @@ def confmatch(dataset):
     torch.cuda.manual_seed(args.seed)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    if dataset == 'pfpascal' or 'pfwillow':
+    if dataset == 'pfpascal' or dataset == 'pfwillow':
         proj_feat_input_dim = 896
+        hyperpixel_ids = [2,17,21,22,25,26,28]
     elif dataset == 'spair' :
         proj_feat_input_dim = 1024
+        hyperpixel_ids = [0,8,20,21,26,28,29,30]
 
     # Model
-    model = CATs(feature_proj_dim=args.feature_proj_dim, depth=1, num_heads=6, mlp_ratio=4, hyperpixel_ids=parse_list(args.hyperpixel), freeze=True, args=args)
+    model = CATs(feature_proj_dim=args.feature_proj_dim, depth=1, num_heads=6, mlp_ratio=4, hyperpixel_ids=hyperpixel_ids, freeze=True, args=args)
     confidence_estimator = con_estimator_tf_not_residual_shallow(proj_feat_input_dim = proj_feat_input_dim, depth=args.con_est_depth)
     confmatch = ConfMatch(model, confidence_estimator, device, args)
     confmatch = confmatch.to(device)
