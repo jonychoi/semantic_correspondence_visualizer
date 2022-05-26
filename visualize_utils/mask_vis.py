@@ -56,6 +56,8 @@ def mask_plotter(args, model_name, index, confidence_map, test_anno, theme = plt
         os.makedirs(os.getcwd()+dir, exist_ok = True)
 
     save_plot(dir_name=dir, img_name="{}'s {} confidence map of {}".format(args.dataset, index, model_name))
+    plt.close()
+    return image.close()
 
 def upsampling(args, confidence_map, scale_factor = 16, mode = 'bilinear'):
     #confidence_map = confidence_map.unsqueeze(0).unsqueeze(0) # make 4D from 2D
@@ -67,13 +69,16 @@ def upsampling(args, confidence_map, scale_factor = 16, mode = 'bilinear'):
 
     zeros = torch.zeros_like(_2d_map)
 
-    if args.threshold:
-        _2d_map = torch.where(_2d_map >= args.threshold, _2d_map, zeros)
+    # if args.threshold:
+    #     _2d_map = torch.where(_2d_map >= args.threshold, _2d_map, zeros)
+    #print(args.threshold, len(_2d_map >= args.threshold))
+    #print(_2d_map)
+    _2d_map = torch.where(_2d_map >= args.threshold, _2d_map, zeros)
     return _2d_map
     
 def save_plot(dir_name, img_name):
     my_path = os.path.abspath(os.getcwd() + dir_name)
-    print(my_path)
+    #print(my_path)
     _dir = os.path.join(my_path, img_name)   
     plt.savefig(_dir, bbox_inches='tight', dpi = 100)
     

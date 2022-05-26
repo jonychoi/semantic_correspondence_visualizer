@@ -5,7 +5,7 @@ from visualize_utils.keypoint_vis import keypointer
 def predict_confmatch(i, net, mini_batch, args, device, test_anno):
     if (args.kps_or_mask == "mask"):
         _, _, _, confidence_map = net(mini_batch['trg_img'].to(device), mini_batch['src_img'].to(device), branch='conf')
-        print("#####", confidence_map.shape)
+        #print("#####", confidence_map.shape)
         
         mask_plotter(args, "confmatch", i, confidence_map, test_anno = test_anno)
 
@@ -22,7 +22,7 @@ def predict_confmatch(i, net, mini_batch, args, device, test_anno):
 def predict_cat(i, net, mini_batch, args, device, test_anno):
     if (args.kps_or_mask == "mask"):
         _, confidence_map = net(mini_batch['trg_img'].to(device), mini_batch['src_img'].to(device))
-        print("#####", confidence_map[0].shape) #score, index
+        #print("#####", confidence_map[0].shape) #score, index
         
         mask_plotter(args, "cats", i, confidence_map, test_anno = test_anno)
 

@@ -2,6 +2,7 @@ import time
 import argparse
 import random
 import numpy as np
+from visualize_utils.actual_vis import actual_src_tgt_kps, actual_src_tgt_mapping
 import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -24,14 +25,15 @@ if __name__ == "__main__":
     parser.add_argument('--dataset', type=str, default='pfpascal')
     parser.add_argument('--confmatch_pretrained_path', type=str, default='../model_weights/confmatch_pascal_best.pth')
     parser.add_argument('--cats_pretrained_path', type=str, default='../model_weights/cats_pascal_best.pth')
-    parser.add_argument('--chm_pretrained_path', type=str, default='pfpascal')
-    parser.add_argument('--semimatch_pretrained_path', type=str, default='pfpascal')
+    parser.add_argument('--cats_pretrained_path_spair', type=str, default='../model_weights/cats_spair_best.pth')
+    parser.add_argument('--confmatch_pretrained_path_spair', type=str, default='../model_weights/confmatch_spair_best.pth')
     parser.add_argument('--kps_or_mask', type=str, default='mask')
     parser.add_argument('--save_dir', type=str, default='./imgs')
     parser.add_argument('--seed', type=int, default='1998')
     parser.add_argument('--threshold', type=float, default=0)
     parser.add_argument('--image_opacity', type=float, default=0.55)
     parser.add_argument('--first_masking_order', type=str, default="mask")
+    parser.add_argument('--gt', type=str, default='no')
 
     args = parser.parse_args()
 
@@ -55,14 +57,15 @@ if __name__ == "__main__":
     cats = Cats(args.dataset)
 
     models = [confmatch, cats]
-    pre_trained_weights = [args.confmatch_pretrained_path, args.cats_pretrained_path, args.chm_pretrained_path, args.semimatch_pretrained_path]
 
     global tst_anno
     
     if args.dataset == 'pfpascal':
         tst_anno = pfpascal()
+        pre_trained_weights = [args.confmatch_pretrained_path, args.cats_pretrained_path]
     elif args.dataset == 'spair':
         tst_anno = spair()
+        pre_trained_weights = [args.confmatch_pretrained_path_spair, args.cats_pretrained_path_spair]
     #get model sota weights and predict the confidence masks or keypoint mapping
     for index, model in enumerate(models):
         checkpoint = torch.load(pre_trained_weights[index], map_location='cpu')
@@ -82,11 +85,16 @@ if __name__ == "__main__":
             pbar = tqdm(enumerate(test_dataloader), total=len(test_dataloader))
             
             for i, mini_batch in pbar:
-                if model == confmatch:
-                    predictors.predict_confmatch(i, model, mini_batch, args, device, tst_anno)
-                    pass
-                elif model == cats:
-                    predictors.predict_cat(i, model, mini_batch, args, device, tst_anno)
+
+                if args.gt == 'okay':
+                    #actual_src_tgt_mapping(i, mini_batch, args, device)
+                    actual_src_tgt_kps(i, mini_batch, args, device)
+                else:
+                    if model == confmatch:
+                        predictors.predict_confmatch(i, model, mini_batch, args, device, tst_anno)
+                        pass
+                    elif model == cats:
+                        predictors.predict_cat(i, model, mini_batch, args, device, tst_anno)
 
 
 

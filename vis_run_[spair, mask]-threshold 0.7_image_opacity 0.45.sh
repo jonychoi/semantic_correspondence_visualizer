@@ -6,4 +6,3 @@ CUDA_VISIBLE_DEVICES=0 python vis_run.py \
 --seed 1998 \
 --threshold 0.7 \
 --image_opacity 0.45 \
---confmatch_pretrained_path '../model_weights/confmatch_spair_best.pth'
